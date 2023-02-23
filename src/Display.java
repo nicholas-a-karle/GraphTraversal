@@ -8,17 +8,18 @@ public class Display extends JFrame implements ActionListener {
     JMenu menu1;
     JMenuItem item1a, item1b;
     JPanel controlsPanel;
-    JPanel drawPanel;
+    DrawPanel drawPanel;
     JLabel label;
     JTextField textInput;
     JButton submitButton;
     JButton clearButton;
+    Graph graph;
 
-    public Display(String name) {
+    public Display(String name, Graph graph) {
         super(name);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocation(250, 170);
-        setSize(700, 500);
+        setSize(600, 600);
 
         menuBar = new JMenuBar();
         menu1 = new JMenu("Actions");
@@ -29,9 +30,12 @@ public class Display extends JFrame implements ActionListener {
         menu1.add(item1b);
 
         controlsPanel = new JPanel();
-        drawPanel = new DrawPanel();
+        drawPanel = new DrawPanel(graph);
+        this.graph = graph;
+        
         //controlsPanel.setBackground(Color.YELLOW);
         //drawPanel.setBackground(Color.RED);
+
         drawPanel.setLayout(new BorderLayout());
         label = new JLabel("Enter Data");
         textInput = new JTextField(10);
@@ -61,9 +65,16 @@ public class Display extends JFrame implements ActionListener {
         } else if (e.getSource().equals(item1b)) { //help
             
         } else if (e.getSource().equals(submitButton)) { //submit
-            
+            System.out.println("Submission: " + textInput.getText());
+            graph = InputReader.readSubmission(textInput.getText(), graph);
+            textInput.setText("");
+            drawPanel.updateGraph(graph);
+            drawPanel.repaint();
         } else if (e.getSource().equals(clearButton)) { //clear
-            
+            graph = new Graph();
+            textInput.setText("");
+            drawPanel.updateGraph(graph);
+            drawPanel.repaint();
         }
     }
 }

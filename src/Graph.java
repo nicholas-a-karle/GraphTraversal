@@ -2,17 +2,19 @@
 public class Graph {
 
     private boolean[][] matrix;
+    private String[] labels;
     private int numNodes;
     private boolean validMatrix;
 
     /**
-     * Default constructor, defines a graph of 1 node with no connections
+     * Default constructor, defines a graph of 0 nodes and 0 edges
      */
     public Graph() {
-        matrix = new boolean[][] {{false}};
-        numNodes = 1;
+        matrix = new boolean[][] {};
+        numNodes = 0;
         validMatrix = checkValidity();
         extendMatrix(numNodes);
+        setLabelsDefault();
     }
 
     /**
@@ -24,6 +26,24 @@ public class Graph {
         numNodes = adjacencyMatrix.length;
         validMatrix = checkValidity();
         extendMatrix(numNodes);
+        setLabelsDefault();
+    }
+
+    public void setLabelsDefault() {
+        this.labels = new String[matrix.length];
+        for (int i = 0; i < matrix.length; ++i) {
+            labels[i] = Integer.toString(i + 1);
+        }
+    }
+
+    public boolean setLabel(int node, String label) {
+        if (node >= numNodes) return false;
+        labels[node] = label;
+        return true;
+    }
+
+    public String getLabel(int node) {
+        return labels[node];
     }
 
     /**
@@ -119,6 +139,7 @@ public class Graph {
             }
         }
         matrix = temp;
+        setLabelsDefault();
         return true;
     }
 
@@ -128,11 +149,36 @@ public class Graph {
      * @return Whether the operation was completed successfully
      */
     public boolean addNodes(int n) {
-        numNodes += n;
-        if (numNodes > matrix.length) {
+        if (numNodes + n> matrix.length) {
             return extendMatrix(matrix.length / 2 + n);
         }
+        numNodes += n;
         return true;
+    }
+
+    /**
+     * A function to remove a node from the graph
+     * @param node Node to remove
+     * @return Whether the operation was completed successfully
+     */
+    public boolean removeNode(int node) {
+        if (node < numNodes) {
+
+            for (int i = 0; i < numNodes; ++i) {
+                for (int k = node; k < numNodes - 1; ++k) {
+                    matrix[i][k] = matrix[i][k+1];
+                }
+            }
+            for (int i = 0; i < numNodes; ++i) {
+                for (int k = node; k < numNodes - 1; ++k) {
+                    matrix[k][i] = matrix[k+1][i];
+                }
+            }
+            --numNodes;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -167,6 +213,22 @@ public class Graph {
             matrix[edges[i][1]][edges[i][0]] = true;
         }
         return true;
+    }
+
+    /**
+     * A function to remove an edge from the graph
+     * @param a Node A connects to Node B, value of index of node
+     * @param b Node B connects to Node A, value of index of node
+     * @return Whether the operation was completed successfully
+     */
+    public boolean removeEdge(int a, int b) {
+        if (a < numNodes && b < numNodes) {
+            matrix[a][b] = false;
+            matrix[b][a] = false;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

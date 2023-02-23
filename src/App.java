@@ -1,5 +1,11 @@
 public class App {
     public static void main(String[] args) throws Exception {
-        Display d = new Display("Graph Traversal");
+        boolean[][] adjacencyMatrix = {
+            {false, true, true},
+            {false, false, true},
+            {false, false, false}
+        };
+        Graph graph = new Graph(adjacencyMatrix);
+        Display d = new Display("Graph Traversal", graph);
     }
 }
