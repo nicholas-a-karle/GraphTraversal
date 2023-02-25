@@ -5,7 +5,7 @@ public class App {
             {false, false, true},
             {false, false, false}
         };
-        Graph graph = new Graph(adjacencyMatrix);
+        Graph graph = new Graph();
         Display d = new Display("Graph Traversal", graph);
     }
 }

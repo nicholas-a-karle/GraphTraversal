@@ -4,14 +4,30 @@ import java.awt.*;
 public class DrawPanel extends JPanel {
 
     Graph graph;
+    Color[] colors;
+    int[] traversal;
     
     public DrawPanel(Graph graph) {
         super();
         this.graph = graph;
+        colors = new Color[graph.getNumNodes()];
+        setAllBlack();
     }
 
     public void updateGraph(Graph graph) {
         this.graph = graph;
+        colors = new Color[graph.getNumNodes()];
+        setAllBlack();
+    }
+
+    public void colorNode(int node, Color color) {
+        colors[node] = color;
+    }
+
+    public void setAllBlack() {
+        for (int i = 0; i < colors.length; ++i) {
+            colors[i] = Color.BLACK;
+        }
     }
 
     /**
@@ -27,7 +43,6 @@ public class DrawPanel extends JPanel {
     }
 
     public void paintComponent(Graphics g) {
-
         super.paintComponent(g);
         
         int minDim = Math.min(getWidth(), getHeight());
@@ -42,12 +57,16 @@ public class DrawPanel extends JPanel {
         for (int i = 0; i < graph.getNumNodes(); ++i) {
             int cx = (int) (drawCenterX + nodeCircRadius * Math.cos(theta * i));
             int cy = (int) (drawCenterY + nodeCircRadius * Math.sin(theta * i));
+
+            g.setColor(colors[i]);
             drawCircle(g, cx, cy, nodeRadius);
+            g.setColor(Color.BLACK);
 
             cx = (int) (drawCenterX + labelCircRadius * Math.cos(theta * i));
             cy = (int) (drawCenterY + labelCircRadius * Math.sin(theta * i));
             g.drawString(graph.getLabel(i), cx, cy);
 
+            
             for (int k = 0; k < graph.getNumNodes(); ++k) {
                 if (graph.getEdge(i, k)) {
                     cx = (int) (drawCenterX + nodeCircRadius * Math.cos(theta * i));
@@ -58,9 +77,6 @@ public class DrawPanel extends JPanel {
                 }
             }
         }
-
-
-
     }
 
 }

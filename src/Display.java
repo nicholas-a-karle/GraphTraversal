@@ -2,6 +2,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class Display extends JFrame implements ActionListener {
     JMenuBar menuBar;
@@ -13,7 +18,13 @@ public class Display extends JFrame implements ActionListener {
     JTextField textInput;
     JButton submitButton;
     JButton clearButton;
-    Graph graph;
+    JButton nextButton;
+    JButton prevButton;
+    JButton runButton;
+    JFileChooser chooser;
+
+    ArrayList<Graph> graphs;
+    int graphPtr;
 
     public Display(String name, Graph graph) {
         super(name);
@@ -31,7 +42,10 @@ public class Display extends JFrame implements ActionListener {
 
         controlsPanel = new JPanel();
         drawPanel = new DrawPanel(graph);
-        this.graph = graph;
+        graphs = new ArrayList<Graph>();
+        graphs.add(graph);
+        graphPtr = 0;
+        updateGraph();
         
         //controlsPanel.setBackground(Color.YELLOW);
         //drawPanel.setBackground(Color.RED);
@@ -41,15 +55,24 @@ public class Display extends JFrame implements ActionListener {
         textInput = new JTextField(10);
         submitButton = new JButton("Submit");
         clearButton = new JButton("Clear");
+        nextButton = new JButton("Next");
+        prevButton = new JButton("Previous");
+        runButton = new JButton("Run DFS");
         controlsPanel.add(label);
         controlsPanel.add(textInput);
         controlsPanel.add(submitButton);
         controlsPanel.add(clearButton);
+        controlsPanel.add(prevButton);
+        controlsPanel.add(nextButton);
+        controlsPanel.add(runButton);
 
         item1a.addActionListener(this);
         item1b.addActionListener(this);
         submitButton.addActionListener(this);
         clearButton.addActionListener(this);
+        nextButton.addActionListener(this);
+        prevButton.addActionListener(this);
+        runButton.addActionListener(this);
         
 
         setContentPane(drawPanel);
@@ -58,23 +81,95 @@ public class Display extends JFrame implements ActionListener {
         setVisible(true);
     }
 
+    public void updateGraph() {
+        drawPanel.updateGraph(graphs.get(graphPtr));
+    }
+
+    public void updateOutputFile() {
+        //as per instructions from professor, this shall do some algorithming and file writing
+        File file = new File("output.out");
+        try {
+            if (!file.exists()) file.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
+
+            //algorithming
+            Algorithm algo;
+            String str = "";
+            for (int i = 0; i < graphs.size(); ++i) {
+                algo = new Algorithm(graphs.get(i));
+                algo.runDFS();
+                str += "Graph " + (i + 1) + ":\n" + algo.getTraversal() + "\n";
+            }
+            bw.write(str);
+            
+                bw.close();
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(item1a)) { //open input file
-
+            chooser = new JFileChooser();
+            chooser.setCurrentDirectory(new java.io.File("."));
+            chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+            if (chooser.showOpenDialog(this) == JFileChooser.OPEN_DIALOG) {
+                try {
+                    graphPtr = 0;
+                    graphs = Reader.readFile(chooser.getSelectedFile());
+                    drawPanel.updateGraph(graphs.get(graphPtr));
+                    drawPanel.repaint();
+                    updateOutputFile();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
         } else if (e.getSource().equals(item1b)) { //help
             
-        } else if (e.getSource().equals(submitButton)) { //submit
-            System.out.println("Submission: " + textInput.getText());
-            graph = InputReader.readSubmission(textInput.getText(), graph);
+        } else if (e.getSource().equals(submitButton)) { //submit new graph or alteration to current
+            String text = textInput.getText();
             textInput.setText("");
-            drawPanel.updateGraph(graph);
-            drawPanel.repaint();
+
+            Graph newGraph = Reader.readSubmission(text, graphs.get(graphPtr));
+
+            if (text.charAt(0) == 'a') {
+                graphs.set(graphPtr, newGraph);
+            } else {
+                graphs.add(newGraph);
+                graphPtr = graphs.size() - 1;
+                drawPanel.updateGraph(graphs.get(graphPtr));
+                drawPanel.repaint();
+            }
+
+            updateOutputFile();
+            
         } else if (e.getSource().equals(clearButton)) { //clear
-            graph = new Graph();
-            textInput.setText("");
-            drawPanel.updateGraph(graph);
+            graphPtr = 0;
+            graphs = new ArrayList<Graph>();
+            graphs.add(new Graph());
+            drawPanel.updateGraph(graphs.get(graphPtr));
             drawPanel.repaint();
-        }
+
+            updateOutputFile();
+
+        } else if (e.getSource().equals(prevButton)) { //previous graph
+            if (graphPtr > 0) --graphPtr;
+            drawPanel.updateGraph(graphs.get(graphPtr));
+            drawPanel.repaint();
+
+        } else if (e.getSource().equals(nextButton)) { //next graph
+            if (graphPtr < graphs.size() - 1) ++graphPtr;
+            drawPanel.updateGraph(graphs.get(graphPtr));
+            drawPanel.repaint();
+
+        } else if (e.getSource().equals(runButton)) { //run search
+            System.out.println("Running Depth First Search");
+            Algorithm algo = new Algorithm(graphs.get(graphPtr));
+            algo.runDFS();
+            System.out.println(algo.getTraversal());
+            drawPanel.traversal = algo.getVisitsAndBackstep();
+        }   
     }
 }
